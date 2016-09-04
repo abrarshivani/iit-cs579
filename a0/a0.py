@@ -37,10 +37,10 @@ import sys
 import time
 from TwitterAPI import TwitterAPI
 
-consumer_key = 'fixme'
-consumer_secret = 'fixme'
-access_token = 'fixme'
-access_token_secret = 'fixme'
+consumer_key = 'uJQx8OkEByWaMaEucxyJl0t8D'
+consumer_secret = 'SEbqZRSDqn37P2uGrXxWFQTLkbltsRNv2p4cZtV5eUzLJHdZcN'
+access_token = '771910893881823233-KkWesZ1Li83LQcwIRDPqB7EoYI4RZGB'
+access_token_secret = 'tlS3LpIG0L1JbcWVyXfSD3HB6FpWl2EOyvSL7etfCWOPL'
 
 
 # This method is done for you.
