@@ -187,7 +187,7 @@ def print_num_friends(users):
     for user in users:
           user_to_friends[user['screen_name']] = len(user['friends'])
 
-    for user, num_of_friends in enumerate(user_to_friends):
+    for user, num_of_friends in user_to_friends.iteritems():
         print(user, " ", num_of_friends)
 
 def count_friends(users):
@@ -266,7 +266,7 @@ def followed_by_hillary_and_donald(users, twitter):
             friends_of_hillary = user['friends']
         elif (user['screen_name'] == "realDonaldTrump"):
             friends_of_donald = user['friends']
-    followed_user_id = set(friends_of_hillary).intersection(set(friends_of_donald))[0]
+    followed_user_id = list(set(friends_of_hillary).intersection(set(friends_of_donald)))[0]
     params = {'user_id': followed_user_id}
 
     users = robust_request(twitter, resource, params)
@@ -290,7 +290,7 @@ def create_graph(users, friend_counts):
     graph = nx.Graph()
     for user in users:
         graph.add_node(user['screen_name'])
-    for friend, followers in enumerate(friend_counts):
+    for friend, followers in friend_counts.iteritems():
         if followers > 1:
             graph.add_node(friend)
     for user in users:
