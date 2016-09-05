@@ -232,9 +232,11 @@ def friend_overlap(users):
     """
     user_to_friends = {}
     user_pairs = []
+    screen_names = []
     for user in users:
           user_to_friends[user['screen_name']] = user['friends']
-    for user_pair in itertools.combinations(user_to_friends.keys(), 2):
+          screen_names.append(user['screen_name'])
+    for user_pair in itertools.combinations(screen_names, 2):
         N = len(set(user_to_friends[user_pair[0]]).intersection(set(user_to_friends[user_pair[1]])))
         user_pairs.append((user_pair[0], user_pair[1], N))
     return sorted(user_pairs, key=lambda user_pair: (-user_pair[2], user_pair[0], user_pair[1]))
