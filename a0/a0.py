@@ -35,6 +35,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import sys
 import time
+import itertools
 from TwitterAPI import TwitterAPI
 
 consumer_key = 'uJQx8OkEByWaMaEucxyJl0t8D'
@@ -226,8 +227,14 @@ def friend_overlap(users):
     ...     ])
     [('a', 'c', 3), ('a', 'b', 2), ('b', 'c', 2)]
     """
-    ###TODO
-    pass
+    user_to_friends = {}
+    user_pairs = []
+    for user in users:
+          user_to_friends[user['screen_name']] = user['friends']
+    for user_pair in itertools.combinations(user_to_friends.keys(), 2):
+        N = len(set(user_to_friends[user_pair[0]]).intersection(set(user_to_friends[user_pair[1]])))
+        user_pairs.append((user_pair[0], user_pair[1], N))
+    return sorted(user_pairs, key=lambda user_pair: (-user_pair[2], user_pair[0], user_pair[1]))
 
 
 def followed_by_hillary_and_donald(users, twitter):
