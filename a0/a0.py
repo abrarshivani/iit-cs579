@@ -118,8 +118,11 @@ def get_users(twitter, screen_names):
     >>> [u['id'] for u in users]
     [6253282, 783214]
     """
-    ###TODO
-    pass
+
+    resource = "users/lookup"
+    params = {'screen_name': screen_names}
+    users = robust_request(twitter, resource, params)
+    return list(users)
 
 
 def get_friends(twitter, screen_name):
