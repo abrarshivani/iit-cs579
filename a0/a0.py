@@ -199,8 +199,10 @@ def count_friends(users):
     >>> c.most_common()
     [(2, 3), (3, 2), (1, 1)]
     """
-    ###TODO
-    pass
+    counter = Counter()
+    for user in users:
+        counter.update(user['friends'])
+    return counter
 
 
 def friend_overlap(users):
