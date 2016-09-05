@@ -146,8 +146,10 @@ def get_friends(twitter, screen_name):
     >>> get_friends(twitter, 'aronwc')[:5]
     [695023, 1697081, 8381682, 10204352, 11669522]
     """
-    ###TODO
-    pass
+    resource = "friends/ids"
+    params = {'screen_name': screen_name}
+    friends = robust_request(twitter, resource, params)
+    return list(friends)
 
 
 def add_all_friends(twitter, users):
