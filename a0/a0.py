@@ -183,9 +183,12 @@ def print_num_friends(users):
     Returns:
         Nothing
     """
-    ###TODO
-    pass
+    user_to_friends = {}
+    for user in users:
+          user_to_friends[user['screen_name']] = len(user['friends'])
 
+    for user, num_of_friends in enumerate(user_to_friends):
+        print(user, " ", num_of_friends)
 
 def count_friends(users):
     """ Count how often each friend is followed.
@@ -251,9 +254,21 @@ def followed_by_hillary_and_donald(users, twitter):
         A string containing the single Twitter screen_name of the user
         that is followed by both Hillary Clinton and Donald Trump.
     """
-    ###TODO
-    pass
+    ###TODO: What to return if there are multiple common users
+    friends_of_hillary = []
+    friends_of_donald = []
+    resource = "users/lookup"
 
+    for user in users:
+        if (user['screen_name'] == "HillaryClinton"):
+            friends_of_hillary = user['friends']
+        elif (user['screen_name'] == "realDonaldTrump"):
+            friends_of_donald = user['friends']
+    followed_user_id = set(friends_of_hillary).intersection(set(friends_of_donald))[0]
+    params = {'user_id': followed_user_id}
+
+    users = robust_request(twitter, resource, params)
+    return (list(users)[0]['screen_name'])
 
 def create_graph(users, friend_counts):
     """ Create a networkx undirected Graph, adding each candidate and friend
@@ -270,9 +285,17 @@ def create_graph(users, friend_counts):
     Returns:
       A networkx Graph
     """
-    ###TODO
-    pass
-
+    graph = nx.Graph()
+    for user in users:
+        graph.add_node(user['screen_name'])
+    for friend, followers in enumerate(friend_counts):
+        if followers > 1:
+            graph.add_node(friend)
+    for user in users:
+        for friend in user['friends']:
+            if friend_counts[friend] > 1:
+                graph.add_edge(user['screen_name'], friend)
+    return graph
 
 def draw_network(graph, users, filename):
     """
@@ -284,9 +307,12 @@ def draw_network(graph, users, filename):
     Your figure does not have to look exactly the same as mine, but try to
     make it look presentable.
     """
-    ###TODO
-    pass
-
+    screen_names = []
+    for user in users:
+        screen_names.append(user['screen_name'])
+    nx.draw_networkx(graph, with_labels=True, labels=screen_names)
+    plt.figure()
+    plt.savefig(filename)
 
 def main():
     """ Main method. You should not modify this. """
