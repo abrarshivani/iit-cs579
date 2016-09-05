@@ -184,11 +184,13 @@ def print_num_friends(users):
         Nothing
     """
     user_to_friends = {}
+    screen_names = []
     for user in users:
-          user_to_friends[user['screen_name']] = len(user['friends'])
-
-    for user, num_of_friends in user_to_friends.iteritems():
-        print(user, " ", num_of_friends)
+        user_to_friends[user['screen_name']] = len(user['friends'])
+        screen_names.append(user['screen_name'])
+    screen_names = sorted(screen_names)
+    for screen_name in screen_names:
+        print(screen_name, " ", user_to_friends[screen_name])
 
 def count_friends(users):
     """ Count how often each friend is followed.
@@ -290,7 +292,7 @@ def create_graph(users, friend_counts):
     graph = nx.Graph()
     for user in users:
         graph.add_node(user['screen_name'])
-    for friend, followers in friend_counts.iteritems():
+    for friend, followers in friend_counts.items():
         if followers > 1:
             graph.add_node(friend)
     for user in users:
@@ -309,11 +311,12 @@ def draw_network(graph, users, filename):
     Your figure does not have to look exactly the same as mine, but try to
     make it look presentable.
     """
-    screen_names = []
+    screen_names = {}
     for user in users:
-        screen_names.append(user['screen_name'])
+        screen_names[user['screen_name']] = user['screen_name']
     nx.draw_networkx(graph, with_labels=True, labels=screen_names)
-    plt.figure()
+    plt.axis('off')
+   # plt.figure()
     plt.savefig(filename)
 
 def main():
