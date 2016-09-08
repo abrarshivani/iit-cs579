@@ -280,7 +280,7 @@ def followed_by_hillary_and_donald(users, twitter):
 
     try:
         common_users = list(robust_request(twitter, resource, params))[0]['screen_name']
-    except:gi
+    except:
         pass
     return common_users
 
