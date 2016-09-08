@@ -314,9 +314,8 @@ def draw_network(graph, users, filename):
     screen_names = {}
     for user in users:
         screen_names[user['screen_name']] = user['screen_name']
-    nx.draw_networkx(graph, with_labels=True, labels=screen_names)
+    nx.draw_networkx(graph, with_labels=True, labels=screen_names, node_size=50, alpha=0.3, width = 0.3, pos=nx.spring_layout(graph))
     plt.axis('off')
-   # plt.figure()
     plt.savefig(filename)
 
 def main():
