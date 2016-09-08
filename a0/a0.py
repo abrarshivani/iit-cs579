@@ -119,10 +119,13 @@ def get_users(twitter, screen_names):
     >>> [u['id'] for u in users]
     [6253282, 783214]
     """
-
+    users = []
     resource = "users/lookup"
     params = {'screen_name': screen_names}
-    users = robust_request(twitter, resource, params)
+    try:
+        users = list(robust_request(twitter, resource, params))
+    except:
+        pass
     return list(users)
 
 
