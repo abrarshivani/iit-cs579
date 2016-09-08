@@ -10,7 +10,7 @@ A. This approach is misleading since doesn't include total number of users there
 For example, 2 people follow only one which is common and other two people follow million people and 100 followers are common.
 This shows us that first two are more similar then other two. Hence, this can be fixed by considering the total number of people both the users follow.
 Another way it can fixed by type of accounts that are common. Some people can follow random people or follow people that are very common to follow (ex: Top basketball players, Top actors etc.).
-This can mislead our analyis. It can be solved by considering common followers that are represent good samples.
+This can mislead our analysis. It can be solved by considering common followers that are represent good samples.
 
 2. Looking at the output of your followed_by_hillary_and_donald function, why
 do you think this user is followed by both Hilary Clinton and Donald Trump,
@@ -19,6 +19,7 @@ information.
 A. User followed by both Hillary Clinton and Donald Trump is Earvin Magic Johnson (@MagicJohnson).
 He is a basketball player and following a sports person doesn't affect there political reputation.
 Moreover, Earvin Magic Johnson supports Hillary and he is still willing to do business with him since he is interested in Trump's hotel.
+Hence, we can think as Donald following Earvin Magic Johnson is for business reasons and not political reasons.
 It is also rumored that Magic Johnson is to replace Trump as the new face of the Celebrity Apprentice television franchise.
 
 3. There is a big difference in how many accounts each candidate follows (Gary
@@ -26,8 +27,9 @@ Johnson follows over 3K accounts, while Donald Trump follows less than
 50). Why do you think this is? How might that affect our analysis?
 A. Donald Trump is popular than Gary Johnson. If Donald Trump follows a lot people this can affect his political reputation.
 For example, he may follow someone who can latter stand against him in controversy. Therefore, from his account we can
-see that he follows much of his businesses, family and couple of other people accounts.
+see that he follows much of his own businesses (ex: Trump hotels), family and couple of other people accounts.
 Since, Gary Johnson is not as much popular as Donald Trump, so get popularity through social media he is following many people.
+This can also help him to get political reputation as people can see he follows who they believe is great.
 
 4. The follower graph we've collected is incomplete. To expand it, we would
 have to also collect the list of accounts followed by each of the
@@ -39,10 +41,11 @@ we have to make? Given how Twitter does rate limiting
 minutes will it take to collect this data?
 A.
 Assuming each of the friend of candidate follows <=5000 people. That is assuming one call per friend.
-Therefore, time in minutes for candidate can be calculated as follows,
+Therefore, time in minutes for candidate can be calculated approximately as follows,
 
 Time(candidate)= [ceiling((Friends(candidate) + 1) / 15) - 1] * 15
 Here, we are adding one to get friends of candidate and subtracting 1 for last interval for which we don't have to wait.
+Assuming 0 network latency.
 
 a. DrJillStein has 4155 friends
 Therefore, time required is,
