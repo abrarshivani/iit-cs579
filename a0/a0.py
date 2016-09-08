@@ -119,10 +119,13 @@ def get_users(twitter, screen_names):
     >>> [u['id'] for u in users]
     [6253282, 783214]
     """
-
+    users = []
     resource = "users/lookup"
     params = {'screen_name': screen_names}
-    users = robust_request(twitter, resource, params)
+    try:
+        users = list(robust_request(twitter, resource, params))
+    except:
+        pass
     return list(users)
 
 
@@ -147,10 +150,14 @@ def get_friends(twitter, screen_name):
     >>> get_friends(twitter, 'aronwc')[:5]
     [695023, 1697081, 8381682, 10204352, 11669522]
     """
+    friends = []
     resource = "friends/ids"
     params = {'screen_name': screen_name}
-    friends = robust_request(twitter, resource, params)
-    return sorted(list(friends))
+    try:
+        friends = sorted(list(robust_request(twitter, resource, params)))
+    except:
+        pass
+    return friends
 
 
 def add_all_friends(twitter, users):
@@ -262,7 +269,7 @@ def followed_by_hillary_and_donald(users, twitter):
     friends_of_hillary = []
     friends_of_donald = []
     resource = "users/lookup"
-
+    common_user = ""
     for user in users:
         if (user['screen_name'] == "HillaryClinton"):
             friends_of_hillary = user['friends']
@@ -271,8 +278,11 @@ def followed_by_hillary_and_donald(users, twitter):
     followed_user_id = list(set(friends_of_hillary).intersection(set(friends_of_donald)))[0]
     params = {'user_id': followed_user_id}
 
-    users = robust_request(twitter, resource, params)
-    return (list(users)[0]['screen_name'])
+    try:
+        common_users = list(robust_request(twitter, resource, params))[0]['screen_name']
+    except:
+        pass
+    return common_users
 
 def create_graph(users, friend_counts):
     """ Create a networkx undirected Graph, adding each candidate and friend
