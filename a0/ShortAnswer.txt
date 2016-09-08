@@ -5,47 +5,29 @@ repository.
 1. Assume I plan to use the friend_overlap function above to quantify the
 similarity of two users. E.g., because 344 is larger than 1, I conclude that
 Jill Stein and Gary Johnson are more similar than Hillary Clinton and Donald
-Trump.
-
-How is this approach misleading? How might you fix it?
-
-
-
-
-
-
-
-
-
+Trump. How is this approach misleading? How might you fix it?
+A. This approach is misleading since doesn't include total number of users there are following.
+For example, 2 people follow only one which is common and other two people follow million people and 100 followers are common.
+This shows us that first two are more similar then other two. Hence, this can be fixed by considering the total number of people both the users follow.
+Another way it can fixed by type of accounts that are common. Some people can follow random people or follow people that are very common to follow (ex: Top basketball players, Top actors etc.).
+This can mislead our analyis. It can be solved by considering common followers that are represent good samples.
 
 2. Looking at the output of your followed_by_hillary_and_donald function, why
 do you think this user is followed by both Hilary Clinton and Donald Trump,
 who are rivals? Do some web searches to see if you can find out more
 information.
-
-
-
-
-
-
-
-
-
-
-
-
+A. User followed by both Hillary Clinton and Donald Trump is Earvin Magic Johnson (@MagicJohnson).
+He is a basketball player and following a sports person doesn't affect there political reputation.
+Moreover, Earvin Magic Johnson supports Hillary and he is still willing to do business with him since he is interested in Trump's hotel.
+It is also rumored that Magic Johnson is to replace Trump as the new face of the Celebrity Apprentice television franchise.
 
 3. There is a big difference in how many accounts each candidate follows (Gary
 Johnson follows over 3K accounts, while Donald Trump follows less than
 50). Why do you think this is? How might that affect our analysis?
-
-
-
-
-
-
-
-
+A. Donald Trump is popular than Gary Johnson. If Donald Trump follows a lot people this can affect his political reputation.
+For example, he may follow someone who can latter stand against him in controversy. Therefore, from his account we can
+see that he follows much of his businesses, family and couple of other people accounts.
+Since, Gary Johnson is not as much popular as Donald Trump, so get popularity through social media he is following many people.
 
 4. The follower graph we've collected is incomplete. To expand it, we would
 have to also collect the list of accounts followed by each of the
@@ -55,3 +37,25 @@ https://dev.twitter.com/rest/reference/get/friends/ids, how many requests will
 we have to make? Given how Twitter does rate limiting
 (https://dev.twitter.com/rest/public/rate-limiting), approximately how many
 minutes will it take to collect this data?
+A.
+Assuming each of the friend of candidate follows <=5000 people. That is assuming one call per friend.
+Therefore, time in minutes for candidate can be calculated as follows,
+
+Time(candidate)= [ceiling((Friends(candidate) + 1) / 15) - 1] * 15
+Here, we are adding one to get friends of candidate and subtracting 1 for last interval for which we don't have to wait.
+
+a. DrJillStein has 4155 friends
+Therefore, time required is,
+time = [((4155+1)/15) - 1] * 15 = 4155 min
+
+b. GovGaryJohnson has 3123 friends
+Therefore, time required is,
+time = [((3123+1)/15) - 1] * 15 = 3120 min
+
+c. HillaryClinton has 748 friends
+Therefore, time required is,
+time = [((748+1)/15) - 1] * 15 = 735 min
+
+d. Donal Trumps has 42 friends.
+Therefore, time required is,
+time = [((42+1)/15) - 1] * 15 = 30 min
