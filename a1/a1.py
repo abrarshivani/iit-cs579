@@ -392,7 +392,7 @@ def jaccard(graph, node, k):
 # - $n_{x,y,i}$ is the number of shortest paths between $x$ and $y$ with length $i$
 
 
-def path_score(graph, root, k, beta, m):
+def path_score(graph, root, k, beta):
     """
     Compute a new link prediction scoring function based on the shortest
     paths between two nodes, as defined above.
@@ -406,7 +406,6 @@ def path_score(graph, root, k, beta, m):
       root.....a node in the graph (a string) to recommend links for.
       k........the number of links to recommend.
       beta.....the beta parameter in the equation above.
-      m........the m parameter in the equation above.
 
     Returns:
       A list of tuples in descending order of score. Ties are broken by
@@ -420,7 +419,7 @@ def path_score(graph, root, k, beta, m):
     >>> g = example_graph()
     >>> train_graph = g.copy()
     >>> train_graph.remove_edge(*('D', 'F'))
-    >>> path_score(train_graph, 'D', k=4, beta=.5, m=3)
+    >>> path_score(train_graph, 'D', k=4, beta=.5)
     [(('D', 'F'), 0.5), (('D', 'A'), 0.25), (('D', 'C'), 0.25)]
     """
     ###TODO
@@ -499,7 +498,7 @@ def main():
     print('jaccard accuracy=%g' %
           evaluate([x[0] for x in jaccard_scores], subgraph))
 
-    path_scores = path_score(train_graph, test_node, k=5, beta=.1, m=5)
+    path_scores = path_score(train_graph, test_node, k=5, beta=.1)
     print('\ntop path scores for Bill Gates for beta=.1:')
     print(path_scores)
     print('path accuracy for beta .1=%g' %
