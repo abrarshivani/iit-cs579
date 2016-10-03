@@ -280,7 +280,7 @@ def partition_girvan_newman(graph, max_depth):
     betweenness = approximate_betweenness(component_graph, max_depth)
     if len(betweenness) == 0:
         return components
-    edges = sorted(betweenness.items(), key= lambda score: -score[1])
+    edges = sorted(betweenness.items(), key= lambda score: (-score[1],score[0][0],score[0][1]))
     for edge in edges:
         if len(components) > 1:
             break
@@ -344,17 +344,11 @@ def volume(nodes, graph):
     >>> volume(['A', 'B', 'C'], example_graph())
     4
     """
-    volume_of_graph = 0
-    visited = defaultdict(bool)
+    volume_nodes = 0
     if not check_nodes_exist_in_graph(graph, nodes):
-        return volume_of_graph
-    for node in nodes:
-        visited[node] = True
-        for neighbor in graph.neighbors(node):
-            if visited[neighbor]:
-                continue
-            volume_of_graph += 1
-    return volume_of_graph
+        return volume_nodes
+    volume = len(list(graph.edges_iter(nodes)))
+    return volume
 
 
 
