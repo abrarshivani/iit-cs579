@@ -130,7 +130,7 @@ def complexity_of_bfs(V, E, K):
     >>> type(v) == int or type(v) == float
     True
     """
-    complexity = 0.0
+    complexity = (V + E)
     return complexity
 
 
