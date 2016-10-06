@@ -236,7 +236,7 @@ def is_approximation_always_right():
     >>> type(s)
     <class 'str'>
     """
-    answer = ""
+    answer = "no"
     return answer
 
 
