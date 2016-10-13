@@ -121,8 +121,9 @@ def token_features(tokens, feats):
     >>> sorted(feats.items())
     [('token=hi', 2), ('token=there', 1)]
     """
-    ###TODO
-    pass
+    prefix = "token="
+    for token in tokens:
+        feats[prefix+token] += 1
 
 
 def token_pair_features(tokens, feats, k=3):
