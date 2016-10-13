@@ -186,8 +186,16 @@ def lexicon_features(tokens, feats):
     >>> sorted(feats.items())
     [('neg_words', 1), ('pos_words', 2)]
     """
-    ###TODO
-    pass
+    pos_words_key = "pos_words"
+    neg_words_key = "neg_words"
+    feats[pos_words_key] = 0
+    feats[neg_words_key] = 0
+    for token in tokens:
+        token = token.lower()
+        if token in pos_words:
+            feats[pos_words_key] += 1
+        elif token in neg_words:
+            feats[neg_words_key] += 1
 
 
 def featurize(tokens, feature_fns):
@@ -206,8 +214,10 @@ def featurize(tokens, feature_fns):
     >>> feats
     [('neg_words', 0), ('pos_words', 2), ('token=LOVE', 1), ('token=great', 1), ('token=i', 1), ('token=movie', 1), ('token=this', 1)]
     """
-    ###TODO
-    pass
+    feats = defaultdict(lambda: 0)
+    for feature_fn in feature_fns:
+        feature_fn(tokens, feats)
+    return sorted(feats.items())
 
 
 def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
@@ -242,8 +252,16 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     >>> sorted(vocab.items(), key=lambda x: x[1])
     [('token=great', 0), ('token=horrible', 1), ('token=isn', 2), ('token=movie', 3), ('token=t', 4), ('token=this', 5)]
     """
-    ###TODO
-    pass
+    #data = []
+    #indptr = [0]
+    #indices = []
+    #features = featurize(tokens_list, feature_fns)
+    #features = [(feature, freq) if freq >= min_freq for feature, freq in features]
+    #for feature, freq in sorted(features):
+    #    data.append(freq)
+
+    #X = csr_matrix((data, indices, indptr), dtype=int)
+    #return X
 
 
 def accuracy_score(truth, predicted):
