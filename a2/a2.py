@@ -93,8 +93,14 @@ def tokenize(doc, keep_internal_punct=False):
     array(['hi', 'there', "isn't", 'this', 'fun'], 
           dtype='<U5')
     """
-    ###TODO
-    pass
+    result = ""
+    doc = doc.lower()
+    if not keep_internal_punct:
+        for punctuation in string.punctuation:
+            doc = doc.replace(punctuation, " ")
+    doc = doc.split()
+    return np.array([term.rstrip(string.punctuation) for term in doc])
+
 
 
 def token_features(tokens, feats):
