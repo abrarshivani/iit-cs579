@@ -152,9 +152,17 @@ def token_pair_features(tokens, feats, k=3):
     >>> sorted(feats.items())
     [('token_pair=a__b', 1), ('token_pair=a__c', 1), ('token_pair=b__c', 2), ('token_pair=b__d', 1), ('token_pair=c__d', 1)]
     """
-    ###TODO
-    pass
-
+    windows = []
+    prefix_token_pair = "token_pair="
+    token_delimiter = "__"
+    if k <= 0:
+        return
+    for window in range(0,len(tokens)- k + 1):
+        windows.append(tokens[window: window + k])
+    for window in windows:
+        for combination in combinations(window, 2):
+            feat = prefix_token_pair + combination[0] + token_delimiter + combination[1]
+            feats[feat] += 1
 
 neg_words = set(['bad', 'hate', 'horrible', 'worst', 'boring'])
 pos_words = set(['awesome', 'amazing', 'best', 'good', 'great', 'love', 'wonderful'])
