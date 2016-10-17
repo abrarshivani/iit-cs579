@@ -253,39 +253,39 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     [('token=great', 0), ('token=horrible', 1), ('token=isn', 2), ('token=movie', 3), ('token=t', 4), ('token=this', 5)]
     """
     pruned_tokens_list = []
-    data = []
-    indptr = [0]
-    indices = []
+    doc_token_counter = defaultdict(lambda: 0)
+    features_list = []
+    global_feature_list = []
+    index = []
     vocab = {}
-    merged_list = []
-    result_list = []
+    data = []
+    row = []
+    col = []
     for tokens in tokens_list:
-        result = []
-        features = a2.featurize(tokens, feature_fns)
+        for token in set(tokens):
+            doc_token_counter[token] += 1
+    for tokens in tokens_list:
+        prune_tokens = []
+        for token in tokens:
+            if doc_token_counter[token] >= min_freq:
+                prune_tokens.append(token)
+        pruned_tokens_list.append(prune_tokens)
+    tokens_list = pruned_tokens_list
+    for tokens in tokens_list:
+        features = featurize(tokens, feature_fns)
+        global_feature_list += features
+        features_list.append(features)
+    for feature in sorted(global_feature_list, key = lambda feature_with_count: feature_with_count[0]):
+        vocab.setdefault(feature[0], len(vocab))
+    col_size = len(vocab)
+    row_no = 0
+    for features in features_list:
         for feature in features:
-            result.append(feature[0])
-        result_list.append(result)
-    tokens_list = result_list
-    token_counter = Counter()
-    for tokens in tokens_list:
-        token_counter.update(tokens)
-    for tokens in tokens_list:
-        pruned_tokens = []
-        for token in tokens:
-            if token_counter[token] >= min_freq:
-                pruned_tokens.append(token)
-        pruned_tokens_list.append(pruned_tokens)
-    for plist in pruned_tokens_list:
-        merged_list += plist
-    for token in sorted(merged_list):
-        index = vocab.setdefault(token, len(vocab))
-    for tokens in pruned_tokens_list:
-        for token in tokens:
-            index = vocab.setdefault(token, len(vocab))
-            indices.append(index)
-            data.append(1)
-        indptr.append(len(indices))
-    X = csr_matrix((data, indices, indptr), dtype=int)
+            data.append(feature[1])
+            row.append(row_no)g
+            col.append(vocab[feature[0]])
+        row_no += 1
+    X = csr_matrix((data, (row, col)), shape=(len(tokens_list),col_size),dtype=int)
     return X,vocab
 
 
