@@ -315,9 +315,15 @@ def cross_validation_accuracy(clf, X, labels, k):
       The average testing accuracy of the classifier
       over each fold of cross-validation.
     """
-    ###TODO
-    pass
-
+    cv = KFold(len(labels), k)
+    accuracies = []
+    for train_idx, test_idx in cv:
+        clf.fit(X[train_idx], labels[train_idx])
+        predicted = clf.predict(X[test_idx])
+        acc = accuracy_score(y[test_idx], predicted)
+        accuracies.append(acc)
+    avg = np.mean(accuracies)
+    return avg
 
 def eval_all_combinations(docs, labels, punct_vals,
                           feature_fns, min_freqs):
@@ -357,8 +363,7 @@ def eval_all_combinations(docs, labels, punct_vals,
 
       This function will take a bit longer to run (~20s for me).
     """
-    ###TODO
-    pass
+
 
 
 def plot_sorted_accuracies(results):
