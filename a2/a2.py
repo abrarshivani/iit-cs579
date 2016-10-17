@@ -252,16 +252,41 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     >>> sorted(vocab.items(), key=lambda x: x[1])
     [('token=great', 0), ('token=horrible', 1), ('token=isn', 2), ('token=movie', 3), ('token=t', 4), ('token=this', 5)]
     """
-    #data = []
-    #indptr = [0]
-    #indices = []
-    #features = featurize(tokens_list, feature_fns)
-    #features = [(feature, freq) if freq >= min_freq for feature, freq in features]
-    #for feature, freq in sorted(features):
-    #    data.append(freq)
-
-    #X = csr_matrix((data, indices, indptr), dtype=int)
-    #return X
+    pruned_tokens_list = []
+    data = []
+    indptr = [0]
+    indices = []
+    vocab = {}
+    merged_list = []
+    result_list = []
+    for tokens in tokens_list:
+        result = []
+        features = a2.featurize(tokens, feature_fns)
+        for feature in features:
+            result.append(feature[0])
+        result_list.append(result)
+    tokens_list = result_list
+    token_counter = Counter()
+    for tokens in tokens_list:
+        token_counter.update(tokens)
+    for tokens in tokens_list:
+        pruned_tokens = []
+        for token in tokens:
+            if token_counter[token] >= min_freq:
+                pruned_tokens.append(token)
+        pruned_tokens_list.append(pruned_tokens)
+    for plist in pruned_tokens_list:
+        merged_list += plist
+    for token in sorted(merged_list):
+        index = vocab.setdefault(token, len(vocab))
+    for tokens in pruned_tokens_list:
+        for token in tokens:
+            index = vocab.setdefault(token, len(vocab))
+            indices.append(index)
+            data.append(1)
+        indptr.append(len(indices))
+    X = csr_matrix((data, indices, indptr), dtype=int)
+    return X,vocab
 
 
 def accuracy_score(truth, predicted):
