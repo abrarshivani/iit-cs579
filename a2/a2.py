@@ -282,7 +282,7 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     for features in features_list:
         for feature in features:
             data.append(feature[1])
-            row.append(row_no)g
+            row.append(row_no)
             col.append(vocab[feature[0]])
         row_no += 1
     X = csr_matrix((data, (row, col)), shape=(len(tokens_list),col_size),dtype=int)
