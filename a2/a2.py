@@ -96,10 +96,9 @@ def tokenize(doc, keep_internal_punct=False):
     result = ""
     doc = doc.lower()
     if not keep_internal_punct:
-        for punctuation in string.punctuation:
-            doc = doc.replace(punctuation, " ")
+        doc = re.sub('\W+', ' ', doc)
     doc = doc.split()
-    return np.array([term.rstrip(string.punctuation) for term in doc])
+    return np.array([term.rstrip(string.punctuation).lstrip(string.punctuation) for term in doc])
 
 
 
@@ -261,31 +260,28 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     data = []
     row = []
     col = []
-    for tokens in tokens_list:
+    for tokens in chain(tokens_list):
         for token in set(tokens):
             doc_token_counter[token] += 1
-    for tokens in tokens_list:
+    for tokens in chain(tokens_list):
         prune_tokens = []
         for token in tokens:
             if doc_token_counter[token] >= min_freq:
                 prune_tokens.append(token)
-        pruned_tokens_list.append(prune_tokens)
-    tokens_list = pruned_tokens_list
-    for tokens in tokens_list:
-        features = featurize(tokens, feature_fns)
+        features = featurize(prune_tokens, feature_fns)
         global_feature_list += features
         features_list.append(features)
     for feature in sorted(global_feature_list, key = lambda feature_with_count: feature_with_count[0]):
         vocab.setdefault(feature[0], len(vocab))
     col_size = len(vocab)
     row_no = 0
-    for features in features_list:
-        for feature in features:
+    for features in chain(features_list):
+        for feature in chain(features):
             data.append(feature[1])
             row.append(row_no)
             col.append(vocab[feature[0]])
         row_no += 1
-    X = csr_matrix((data, (row, col)), shape=(len(tokens_list),col_size),dtype=int)
+    X = csr_matrix((data, (row, col)),dtype=int)
     return X,vocab
 
 
@@ -320,7 +316,7 @@ def cross_validation_accuracy(clf, X, labels, k):
     for train_idx, test_idx in cv:
         clf.fit(X[train_idx], labels[train_idx])
         predicted = clf.predict(X[test_idx])
-        acc = accuracy_score(y[test_idx], predicted)
+        acc = accuracy_score(labels[test_idx], predicted)
         accuracies.append(acc)
     avg = np.mean(accuracies)
     return avg
@@ -363,7 +359,26 @@ def eval_all_combinations(docs, labels, punct_vals,
 
       This function will take a bit longer to run (~20s for me).
     """
-
+    results = []
+    all_feature_fns = []
+    for level in range(1, len(feature_fns)+1):
+        for combination in combinations(feature_fns, level):
+            all_feature_fns.append(list(combination))
+    for punct_val in punct_vals:
+        tokens_list = [tokenize(d, punct_val) for d in docs]
+        for min_freq in min_freqs:
+            for feature_fn in all_feature_fns:
+                clf = LogisticRegression()
+                X,vocab =  vectorize(tokens_list, feature_fn, min_freq)
+                accuracy = cross_validation_accuracy(clf, X, labels, 5)
+                result = {}
+                result['punct'] = punct_val
+                result['min_freq'] = min_freq
+                result['features'] = feature_fn
+                result['accuracy'] = accuracy
+                results.append(result)
+    #print(sorted(results, key=lambda result: result['accuracy'], reverse=True))
+    return sorted(results, key=lambda result: result['accuracy'], reverse=True)
 
 
 def plot_sorted_accuracies(results):
@@ -372,8 +387,7 @@ def plot_sorted_accuracies(results):
     in ascending order of accuracy.
     Save to "accuracies.png".
     """
-    ###TODO
-    pass
+    
 
 
 def mean_accuracy_per_setting(results):
