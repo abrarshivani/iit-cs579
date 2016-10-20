@@ -418,7 +418,7 @@ def mean_accuracy_per_setting(results):
                 continue
             if setting == "features":
                 setting_value = ""
-                for value in resgult[setting]:
+                for value in result[setting]:
                     setting_value += " " + value.__name__
                 setting_value = setting_value.lstrip()
             else:
@@ -446,8 +446,14 @@ def fit_best_classifier(docs, labels, best_result):
             training data.
       vocab...The dict from feature name to column index.
     """
-    ###TODO
-    pass
+    vocab = {}
+    clf = LogisticRegression()
+    if best_result is None or docs is None or labels is None:
+        return clf, vocab
+    tokens_list = [tokenize(d, best_result["punct"]) for d in docs]
+    X,vocab = vectorize(tokens_list, best_result["features"], best_result["min_freq"])
+    clf.fit(X, labels)
+    return clf, vocab
 
 
 def top_coefs(clf, label, n, vocab):
@@ -467,8 +473,18 @@ def top_coefs(clf, label, n, vocab):
       in descending order of the coefficient for the
       given class label.
     """
-    ###TODO
-    pass
+    results = []
+    coefs = []
+    if clf is None or label is None or n is None or vocab is None:
+        return results
+    if n <= 0 or len(vocab) == 0 or len(clf.coef_) == 0:
+        return results
+    results = zip(sorted(vocab, key=vocab.get), clf.coef_[0])
+    if label == 0:
+        results = [(result[0], result[1]*-1) for result in results if result[1] < 0]
+    else:
+        results = [result for result in results if result[1] >= 0]
+    return sorted(results, key=lambda result: -result[1])[:n]
 
 
 def parse_test_data(best_result, vocab):
