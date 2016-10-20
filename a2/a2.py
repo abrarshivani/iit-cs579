@@ -387,7 +387,12 @@ def plot_sorted_accuracies(results):
     in ascending order of accuracy.
     Save to "accuracies.png".
     """
-    
+    filename = "accuracies.png"
+    accuracies = sorted(list(map(lambda result: result['accuracy'], results)))
+    plt.plot(np.arange(len(accuracies)), accuracies, 'bo-')
+    plt.xlabel('setting', size=14)
+    plt.ylabel('accuracy', size=14)
+    plt.savefig(filename)
 
 
 def mean_accuracy_per_setting(results):
@@ -403,8 +408,9 @@ def mean_accuracy_per_setting(results):
       A list of (accuracy, setting) tuples, SORTED in
       descending order of accuracy.
     """
-    ###TODO
-    pass
+   # mean = []
+   # for setting
+
 
 
 def fit_best_classifier(docs, labels, best_result):
