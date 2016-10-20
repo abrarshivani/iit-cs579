@@ -408,10 +408,26 @@ def mean_accuracy_per_setting(results):
       A list of (accuracy, setting) tuples, SORTED in
       descending order of accuracy.
     """
-   # mean = []
-   # for setting
-
-
+    mean = []
+    accuracies_per_setting = defaultdict(list)
+    if len(results) == 0:
+        return mean
+    for result in results:
+        for setting in result.keys():
+            if setting == "accuracy":
+                continue
+            if setting == "features":
+                setting_value = ""
+                for value in resgult[setting]:
+                    setting_value += " " + value.__name__
+                setting_value = setting_value.lstrip()
+            else:
+                setting_value = result[setting]
+            setting_parameter_value = setting + "=" + str(setting_value)
+            accuracies_per_setting[setting_parameter_value].append(result["accuracy"])
+    for setting, accuracies in accuracies_per_setting.items():
+        mean.append((np.mean(accuracies), setting))
+    return sorted(mean, reverse=True)
 
 def fit_best_classifier(docs, labels, best_result):
     """
