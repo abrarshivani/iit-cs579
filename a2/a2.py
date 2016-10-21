@@ -35,7 +35,7 @@ from sklearn.linear_model import LogisticRegression
 import string
 import tarfile
 import urllib.request
-
+from scipy.sparse import lil_matrix
 
 def download_data():
     """ Download and unzip data.
@@ -282,13 +282,11 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
         for feature in sorted(global_feature_list, key = lambda feature_with_count: feature_with_count[0]):
             vocab.setdefault(feature[0], len(vocab))
     col_size = len(vocab)
-    row_no = 0
-    for features in chain(prune_features_list):
+    for row_no, features in enumerate(prune_features_list):
         for feature in chain(features):
             data.append(feature[1])
             row.append(row_no)
             col.append(vocab[feature[0]])
-        row_no += 1
     X = csr_matrix((data, (row, col)), shape=(len(tokens_list),col_size),dtype=int)
     return X,vocab
 
