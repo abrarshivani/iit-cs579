@@ -279,7 +279,7 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
 
     if vocab is None:
         vocab = defaultdict(lambda: -1)
-        for feature in sorted(global_feature_list, key = lambda feature_with_count: feature_with_count[0]):
+        for feature in sorted(chain(global_feature_list), key = lambda feature_with_count: feature_with_count[0]):
             vocab.setdefault(feature[0], len(vocab))
     col_size = len(vocab)
     for row_no, features in enumerate(prune_features_list):
@@ -386,7 +386,7 @@ def eval_all_combinations(docs, labels, punct_vals,
                 result['min_freq'] = min_freq
                 results.append(result)
    # print(sorted(results, key=lambda result: result['accuracy'], reverse=True))
-    return sorted(results, key=lambda result: result['accuracy'], reverse=True)
+    return sorted(chain(results), key=lambda result: result['accuracy'], reverse=True)
 
 
 def plot_sorted_accuracies(results):
@@ -435,7 +435,7 @@ def mean_accuracy_per_setting(results):
             accuracies_per_setting[setting_parameter_value].append(result["accuracy"])
     for setting, accuracies in accuracies_per_setting.items():
         mean.append((np.mean(accuracies), setting))
-    return sorted(mean, reverse=True)
+    return sorted(chain(mean), reverse=True)
 
 def fit_best_classifier(docs, labels, best_result):
     """
@@ -492,7 +492,7 @@ def top_coefs(clf, label, n, vocab):
         results = [(result[0], result[1]*-1) for result in results if result[1] < 0]
     else:
         results = [result for result in results if result[1] >= 0]
-    return sorted(results, key=lambda result: -result[1])[:n]
+    return sorted(chain(results), key=lambda result: -result[1])[:n]
 
 
 def parse_test_data(best_result, vocab):
@@ -557,7 +557,7 @@ def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
             test_class = 1
         if test_class != test_labels[index_of_doc]:
             misclassfied_docs.append((test_docs[index_of_doc], T[index_of_doc][test_class], test_class))
-    misclassfied_docs = sorted(misclassfied_docs, key=lambda misclassified_doc: -misclassified_doc[1])[:n]
+    misclassfied_docs = sorted(chain(misclassfied_docs), key=lambda misclassified_doc: -misclassified_doc[1])[:n]
     for misclassfied_doc in misclassfied_docs:
         print("truth=%d predicted=%d prob=%f" % ((1 - misclassfied_doc[2]), misclassfied_doc[2], misclassfied_doc[1]))
         print(misclassfied_doc[0])
