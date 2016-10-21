@@ -397,9 +397,9 @@ def plot_sorted_accuracies(results):
     """
     filename = "accuracies.png"
     accuracies = sorted(list(map(lambda result: result['accuracy'], results)))
-    plt.plot(np.arange(len(accuracies)), accuracies, 'bo-')
-    plt.xlabel('setting', size=14)
-    plt.ylabel('accuracy', size=14)
+    plt.plot(np.arange(len(accuracies)), accuracies)
+    plt.xlabel('setting')
+    plt.ylabel('accuracy')
     plt.savefig(filename)
 
 
