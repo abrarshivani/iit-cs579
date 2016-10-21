@@ -542,8 +542,19 @@ def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
     Returns:
       Nothing; see Log.txt for example printed output.
     """
-    ###TODO
-    pass
+    misclassfied_docs = []
+    T = clf.predict_proba(X_test)
+    for index_of_doc in range(0,len(test_docs)):
+        if T[index_of_doc][0] > T[index_of_doc][1]:
+            test_class = 0
+        else:
+            test_class = 1
+        if test_class != test_labels[index_of_doc]:
+            misclassfied_docs.append((test_docs[index_of_doc], T[index_of_doc][test_class], test_class))
+    misclassfied_docs = sorted(misclassfied_docs, key=lambda misclassified_doc: -misclassified_doc[1])[:n]
+    for misclassfied_doc in misclassfied_docs:
+        print("truth=%d predicted=%d prob=%f" % ((1 - misclassfied_doc[2]), misclassfied_doc[2], misclassfied_doc[1]))
+        print(misclassfied_doc[0])
 
 
 def main():
