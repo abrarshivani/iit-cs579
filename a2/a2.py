@@ -253,33 +253,37 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     >>> sorted(vocab.items(), key=lambda x: x[1])
     [('token=great', 0), ('token=horrible', 1), ('token=isn', 2), ('token=movie', 3), ('token=t', 4), ('token=this', 5)]
     """
-    pruned_tokens_list = []
-    doc_token_counter = defaultdict(lambda: 0)
+    doc_feature_counter = defaultdict(lambda: 0)
     features_list = []
     global_feature_list = []
-    index = []
+    prune_features_list = []
 
     data = []
     row = []
     col = []
+
     for tokens in chain(tokens_list):
-        for token in set(tokens):
-            doc_token_counter[token] += 1
-    for tokens in chain(tokens_list):
-        prune_tokens = []
-        for token in tokens:
-            if doc_token_counter[token] >= min_freq:
-                prune_tokens.append(token)
-        features = featurize(prune_tokens, feature_fns)
-        global_feature_list += features
-        features_list.append(features)
+        features_list.append(featurize(tokens, feature_fns))
+
+    for features in features_list:
+        for feature in features:
+            doc_feature_counter[feature[0]] += 1
+
+    for features in chain(features_list):
+        prune_feature = []
+        for feature in features:
+            if doc_feature_counter[feature[0]] >= min_freq:
+                prune_feature.append(feature)
+        prune_features_list.append(prune_feature)
+        global_feature_list += prune_feature
+
     if vocab is None:
         vocab = defaultdict(lambda: 0)
         for feature in sorted(global_feature_list, key = lambda feature_with_count: feature_with_count[0]):
             vocab.setdefault(feature[0], len(vocab))
     col_size = len(vocab)
     row_no = 0
-    for features in chain(features_list):
+    for features in chain(prune_features_list):
         for feature in chain(features):
             data.append(feature[1])
             row.append(row_no)
@@ -381,7 +385,7 @@ def eval_all_combinations(docs, labels, punct_vals,
                 result['accuracy'] = accuracy
                 result['min_freq'] = min_freq
                 results.append(result)
-    #print(sorted(results, key=lambda result: result['accuracy'], reverse=True))
+   # print(sorted(results, key=lambda result: result['accuracy'], reverse=True))
     return sorted(results, key=lambda result: result['accuracy'], reverse=True)
 
 
