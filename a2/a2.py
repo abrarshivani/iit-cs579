@@ -256,7 +256,7 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     features_list = []
     global_feature_list = []
     index = []
-    vocab = {}
+
     data = []
     row = []
     col = []
@@ -271,8 +271,10 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
         features = featurize(prune_tokens, feature_fns)
         global_feature_list += features
         features_list.append(features)
-    for feature in sorted(global_feature_list, key = lambda feature_with_count: feature_with_count[0]):
-        vocab.setdefault(feature[0], len(vocab))
+    if vocab is None:
+        vocab = defaultdict(lambda: 0)
+        for feature in sorted(global_feature_list, key = lambda feature_with_count: feature_with_count[0]):
+            vocab.setdefault(feature[0], len(vocab))
     col_size = len(vocab)
     row_no = 0
     for features in chain(features_list):
@@ -281,7 +283,7 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
             row.append(row_no)
             col.append(vocab[feature[0]])
         row_no += 1
-    X = csr_matrix((data, (row, col)),dtype=int)
+    X = csr_matrix((data, (row, col)), shape=(len(tokens_list),col_size),dtype=int)
     return X,vocab
 
 
@@ -372,10 +374,10 @@ def eval_all_combinations(docs, labels, punct_vals,
                 X,vocab =  vectorize(tokens_list, feature_fn, min_freq)
                 accuracy = cross_validation_accuracy(clf, X, labels, 5)
                 result = {}
-                result['punct'] = punct_val
-                result['min_freq'] = min_freq
                 result['features'] = feature_fn
+                result['punct'] = punct_val
                 result['accuracy'] = accuracy
+                result['min_freq'] = min_freq
                 results.append(result)
     #print(sorted(results, key=lambda result: result['accuracy'], reverse=True))
     return sorted(results, key=lambda result: result['accuracy'], reverse=True)
@@ -511,8 +513,10 @@ def parse_test_data(best_result, vocab):
                     in the test data. Each row is a document,
                     each column is a feature.
     """
-    ###TODO
-    pass
+    docs, labels = read_data(os.path.join('data', 'test'))
+    tokens_list = [tokenize(d, best_result["punct"]) for d in docs]
+    X,vocab = vectorize(tokens_list, best_result["features"], best_result["min_freq"], vocab)
+    return docs, labels, X
 
 
 def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
