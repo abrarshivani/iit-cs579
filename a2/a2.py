@@ -557,7 +557,7 @@ def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
             misclassfied_docs.append((test_docs[index_of_doc], T[index_of_doc][test_class], test_class))
     misclassfied_docs = sorted(chain(misclassfied_docs), key=lambda misclassified_doc: -misclassified_doc[1])[:n]
     for misclassfied_doc in misclassfied_docs:
-        print("truth=%d predicted=%d prob=%f" % ((1 - misclassfied_doc[2]), misclassfied_doc[2], misclassfied_doc[1]))
+        print("truth=%d predicted=%d proba=%f" % ((1 - misclassfied_doc[2]), misclassfied_doc[2], misclassfied_doc[1]))
         print(misclassfied_doc[0])
 
 
