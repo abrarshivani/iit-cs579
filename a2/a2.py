@@ -98,7 +98,7 @@ def tokenize(doc, keep_internal_punct=False):
     if not keep_internal_punct:
         doc = re.sub("\W+", " ", doc)
     doc = doc.split()
-    return np.array([term.rstrip(punctuation).lstrip(punctuation) for term in doc])
+    return np.array([term.rstrip(punctuation).lstrip(punctuation) for term in doc if term.rstrip(punctuation) != ""])
 
 
 
