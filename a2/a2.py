@@ -273,16 +273,21 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
             if doc_feature_counter[feature[0]] >= min_freq:
                 prune_feature.append(feature)
         prune_features_list.append(prune_feature)
-        global_feature_list += prune_feature
+        if vocab is None:
+            global_feature_list += prune_feature
 
+    index = 0
     if vocab is None:
-        vocab = defaultdict(lambda: -1)
+        vocab = {}
         for feature in sorted(chain(global_feature_list), key = lambda feature_with_count: feature_with_count[0]):
-            vocab.setdefault(feature[0], len(vocab))
+            if vocab.get(feature[0]) is None:
+                vocab[feature[0]] = index
+                index += 1
+
     col_size = len(vocab)
     for row_no, features in enumerate(prune_features_list):
         for feature in chain(features):
-            if vocab[feature[0]] == -1:
+            if vocab.get(feature[0]) is None:
                 continue
             data.append(feature[1])
             row.append(row_no)
