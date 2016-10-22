@@ -35,7 +35,6 @@ from sklearn.linear_model import LogisticRegression
 import string
 import tarfile
 import urllib.request
-from scipy.sparse import lil_matrix
 
 def download_data():
     """ Download and unzip data.
@@ -97,8 +96,7 @@ def tokenize(doc, keep_internal_punct=False):
     doc = doc.lower()
     punctuation = re.sub("_", "", string.punctuation)
     if not keep_internal_punct:
-        for punc in punctuation:
-            doc = doc.replace(punc, " ")
+        doc = re.sub("\W+", " ", doc)
     doc = doc.split()
     return np.array([term.rstrip(punctuation).lstrip(punctuation) for term in doc])
 
