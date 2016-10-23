@@ -92,7 +92,6 @@ def tokenize(doc, keep_internal_punct=False):
     array(['hi', 'there', "isn't", 'this', 'fun'], 
           dtype='<U5')
     """
-    result = ""
     doc = doc.lower()
     punctuation = re.sub("_", "", string.punctuation)
     if not keep_internal_punct:
@@ -277,7 +276,7 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
             global_feature_list += prune_feature
 
         index = 0
-        vocab = {}
+        vocab = defaultdict(int)
         for feature in sorted(chain(global_feature_list), key = lambda feature_with_count: feature_with_count[0]):
             if vocab.get(feature[0]) is None:
                 vocab[feature[0]] = index
@@ -380,7 +379,7 @@ def eval_all_combinations(docs, labels, punct_vals,
         for min_freq in min_freqs:
             for feature_fn in all_feature_fns:
                 clf = LogisticRegression()
-                X,vocab =  vectorize(tokens_list, feature_fn, min_freq)
+                X,vocab = vectorize(tokens_list, feature_fn, min_freq)
                 accuracy = cross_validation_accuracy(clf, X, labels, 5)
                 result = {}
                 result['features'] = feature_fn
@@ -551,17 +550,17 @@ def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
     Returns:
       Nothing; see Log.txt for example printed output.
     """
-    misclassfied_docs = []
+    misclassified_docs = []
     T = clf.predict_proba(X_test)
     predictions = clf.predict(X_test)
     for index_of_doc in range(0,len(test_docs)):
         test_class = predictions[index_of_doc]
         if test_class != test_labels[index_of_doc]:
-            misclassfied_docs.append((test_docs[index_of_doc], T[index_of_doc][test_class], test_class))
-    misclassfied_docs = sorted(chain(misclassfied_docs), key=lambda misclassified_doc: -misclassified_doc[1])[:n]
-    for misclassfied_doc in misclassfied_docs:
-        print("truth=%d predicted=%d proba=%f" % ((1 - misclassfied_doc[2]), misclassfied_doc[2], misclassfied_doc[1]))
-        print(misclassfied_doc[0])
+            misclassified_docs.append((test_docs[index_of_doc], T[index_of_doc][test_class], test_class))
+    misclassified_docs = sorted(chain(misclassified_docs), key=lambda misclassified_doc: -misclassified_doc[1])[:n]
+    for misclassified_doc in misclassified_docs:
+        print("truth=%d predicted=%d proba=%f" % ((1 - misclassified_doc[2]), misclassified_doc[2], misclassified_doc[1]))
+        print(misclassified_doc[0])
 
 
 def main():
