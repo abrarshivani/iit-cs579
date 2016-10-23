@@ -282,9 +282,8 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
                 vocab[feature[0]] = index
                 index += 1
 
-    prune_features_list = features_list
     col_size = len(vocab)
-    for row_no, features in enumerate(prune_features_list):
+    for row_no, features in enumerate(features_list):
         for feature in chain(features):
             if vocab.get(feature[0]) is None:
                 continue
