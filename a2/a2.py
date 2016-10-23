@@ -119,6 +119,8 @@ def token_features(tokens, feats):
     >>> sorted(feats.items())
     [('token=hi', 2), ('token=there', 1)]
     """
+    if feats is None:
+        return
     prefix = "token="
     for token in tokens:
         feats[prefix+token] += 1
@@ -153,7 +155,7 @@ def token_pair_features(tokens, feats, k=3):
     windows = []
     prefix_token_pair = "token_pair="
     token_delimiter = "__"
-    if k <= 0:
+    if k <= 0 or feats is None:
         return
     for window in range(0,len(tokens)- k + 1):
         windows.append(tokens[window: window + k])
@@ -186,6 +188,8 @@ def lexicon_features(tokens, feats):
     """
     pos_words_key = "pos_words"
     neg_words_key = "neg_words"
+    if feats is None:
+        return
     feats[pos_words_key] = 0
     feats[neg_words_key] = 0
     for token in tokens:
@@ -381,7 +385,7 @@ def eval_all_combinations(docs, labels, punct_vals,
                 X,vocab = vectorize(tokens_list, feature_fn, min_freq)
                 accuracy = cross_validation_accuracy(clf, X, labels, 5)
                 result = {}
-                result['features'] = feature_fn
+                result['features'] = tuple(feature_fn)
                 result['punct'] = punct_val
                 result['accuracy'] = accuracy
                 result['min_freq'] = min_freq
@@ -396,6 +400,8 @@ def plot_sorted_accuracies(results):
     in ascending order of accuracy.
     Save to "accuracies.png".
     """
+    if results == None or len(results) == 0:
+        return
     filename = "accuracies.png"
     accuracies = sorted(list(map(lambda result: result['accuracy'], results)))
     plt.plot(np.arange(len(accuracies)), accuracies)
@@ -483,7 +489,6 @@ def top_coefs(clf, label, n, vocab):
       given class label.
     """
     results = []
-    coefs = []
     if clf is None or label is None or n is None or vocab is None:
         return results
     if n <= 0 or len(vocab) == 0 or len(clf.coef_) == 0:
