@@ -263,27 +263,27 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     for tokens in chain(tokens_list):
         features_list.append(featurize(tokens, feature_fns))
 
-    for features in features_list:
-        for feature in features:
-            doc_feature_counter[feature[0]] += 1
+    if vocab is None:
+        for features in features_list:
+            for feature in features:
+                doc_feature_counter[feature[0]] += 1
 
-    for features in chain(features_list):
-        prune_feature = []
-        for feature in features:
-            if doc_feature_counter[feature[0]] >= min_freq:
-                prune_feature.append(feature)
-        prune_features_list.append(prune_feature)
-        if vocab is None:
+        for features in chain(features_list):
+            prune_feature = []
+            for feature in features:
+                if doc_feature_counter[feature[0]] >= min_freq:
+                    prune_feature.append(feature)
+            prune_features_list.append(prune_feature)
             global_feature_list += prune_feature
 
-    index = 0
-    if vocab is None:
+        index = 0
         vocab = {}
         for feature in sorted(chain(global_feature_list), key = lambda feature_with_count: feature_with_count[0]):
             if vocab.get(feature[0]) is None:
                 vocab[feature[0]] = index
                 index += 1
 
+    prune_features_list = features_list
     col_size = len(vocab)
     for row_no, features in enumerate(prune_features_list):
         for feature in chain(features):
@@ -553,11 +553,9 @@ def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
     """
     misclassfied_docs = []
     T = clf.predict_proba(X_test)
+    predictions = clf.predict(X_test)
     for index_of_doc in range(0,len(test_docs)):
-        if T[index_of_doc][0] > T[index_of_doc][1]:
-            test_class = 0
-        else:
-            test_class = 1
+        test_class = predictions[index_of_doc]
         if test_class != test_labels[index_of_doc]:
             misclassfied_docs.append((test_docs[index_of_doc], T[index_of_doc][test_class], test_class))
     misclassfied_docs = sorted(chain(misclassfied_docs), key=lambda misclassified_doc: -misclassified_doc[1])[:n]
