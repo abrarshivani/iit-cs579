@@ -17,6 +17,10 @@ from scipy.sparse import csr_matrix
 import urllib.request
 import zipfile
 
+
+def flatten_list(lists):
+    return [value for sublist in lists for value in sublist]
+
 def download_data():
     """ DONE. Download and unzip data.
     """
@@ -83,8 +87,15 @@ def featurize(movies):
       - The movies DataFrame, which has been modified to include a column named 'features'.
       - The vocab, a dict from term to int. Make sure the vocab is sorted alphabetically as in a2 (e.g., {'aardvark': 0, 'boy': 1, ...})
     """
-    ###TODO
-    pass
+    features = []
+    featuresColumnName = "features"
+    vocab = defaultdict(lambda: len(vocab))
+    tokens = sorted(list(set(flatten_list(movies['tokens'].tolist()))))
+    for token in tokens:
+        vocab[token]
+    #create_csr_matrix(features, vocab)
+    movies = movies.join(pd.DataFrame(features, columns=[featuresColumnName]))
+    return movies, vocab
 
 
 def train_test_split(ratings):
