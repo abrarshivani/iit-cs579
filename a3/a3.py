@@ -51,8 +51,14 @@ def tokenize(movies):
     >>> movies['tokens'].tolist()
     [['horror', 'romance'], ['sci-fi']]
     """
-    ###TODO
-    pass
+    tokens = []
+    tokensColumnName = "tokens"
+    #if movies empty, append a new column, datatype of new column?
+    #if movies not empty
+    for genre in movies['genres']:
+        tokens.append([tokenize_string(genre)])
+    movies = movies.join(pd.DataFrame(tokens, columns=[tokensColumnName]))
+    return movies
 
 
 def featurize(movies):
