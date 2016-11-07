@@ -21,6 +21,61 @@ import zipfile
 def flatten_list(lists):
     return [value for sublist in lists for value in sublist]
 
+def tfidf(docs):
+    """
+    tfidf(i, d) := tf(i, d) / max_k tf(k, d) * log10(N/df(i))
+    where:
+    i is a term
+    d is a document (movie)
+    tf(i, d) is the frequency of term i in document d
+    max_k tf(k, d) is the maximum frequency of any term in document d
+    N is the number of documents (movies)
+    df(i) is the number of unique documents containing term i
+    Params:
+      docs...The list of docs
+    Returns:
+        [[(term1, tfidf),(term2, tfidf)], [(term1, tfidf)]]
+    """
+    tfidf_data = []
+    df = defaultdict(lambda: 0)
+    N = len(docs)
+
+    #Calculate df[i]
+    for doc in docs:
+        for token in set(doc):
+            df[token] += 1
+    for doc in docs:
+        term_freqs = Counter(doc)
+        k = term_freqs.most_common(1)
+        tfidf_value_of_terms_in_doc = []
+        for term, freq in term_freqs.items():
+            if len(k) == 0 or len(k[0]) != 2:
+                break
+            if df[term] == 0:
+                df[term] = 1
+            tf = freq / k[0][1]
+            idf = math.log10(N / df[term])
+            tfidf_value = tf * idf
+            tfidf_value_of_terms_in_doc.append((term, tfidf_value))
+        tfidf_data.append(tfidf_value_of_terms_in_doc)
+    return tfidf_data
+
+def norm(matrix):
+    return math.sqrt(matrix.multiply(matrix).sum())
+
+def create_csr_matrix(tfidf_value_per_doc, vocab):
+    col = []
+    row = []
+    data = []
+    row_no = 0
+
+    for tfidf_value_of_term in tfidf_value_per_doc:
+        data.append(tfidf_value_of_term[1])
+        row.append(row_no)
+        col.append(vocab[tfidf_value_of_term[0]])
+    X = csr_matrix((data, (row, col)), shape=(1, len(vocab)),dtype=int)
+    return X
+
 def download_data():
     """ DONE. Download and unzip data.
     """
@@ -93,7 +148,9 @@ def featurize(movies):
     tokens = sorted(list(set(flatten_list(movies['tokens'].tolist()))))
     for token in tokens:
         vocab[token]
-    #create_csr_matrix(features, vocab)
+    tfidf_values = tfidf(movies['tokens'].tolist())
+    for tfidf_value in tfidf_values:
+        features.append([create_csr_matrix(tfidf_value, vocab)])
     movies = movies.join(pd.DataFrame(features, columns=[featuresColumnName]))
     return movies, vocab
 
@@ -119,9 +176,12 @@ def cosine_sim(a, b):
       The cosine similarity, defined as: dot(a, b) / ||a|| * ||b||
       where ||a|| indicates the Euclidean norm (aka L2 norm) of vector a.
     """
-    ###TODO
-    pass
-
+    cosine_similarity = 0.0
+    if a == None or b == None:
+        return cosine_similarity
+    num = a.multiply(b)
+    deno = norm(a) * norm(b)
+    return num / deno
 
 def make_predictions(movies, ratings_train, ratings_test):
     """
