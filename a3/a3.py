@@ -212,6 +212,7 @@ def make_predictions(movies, ratings_train, ratings_test):
     for test in ratings_test.iterrows():
         prediction = 0.0
         wts = []
+        num = []
         ratings_of_user = []
         test_movie_feature = movies[movies.movieId == test[1].movieId].iloc[0].features
         for train in ratings_train[ratings_train.userId == test[1].userId].iterrows():
@@ -220,12 +221,13 @@ def make_predictions(movies, ratings_train, ratings_test):
             train_movie_feature = movies[movies.movieId == train[1].movieId].iloc[0].features
             sim = cosine_sim(train_movie_feature, test_movie_feature)
             ratings_of_user.append(train[1].rating)
-            if sim >= 0:
+            if sim > 0:
+                num.append(sim * train[1].rating)
                 wts.append(sim)
-        if len(wts) == 0 or sum(wts) == 0:
+        if len(wts) == 0:
             prediction = np.average(ratings_of_user)
         else:
-            prediction = np.average(ratings_of_user, weights=wts)
+            prediction = sum(num)/sum(wts)
         predictions.append(prediction)
     return np.array(predictions)
 
