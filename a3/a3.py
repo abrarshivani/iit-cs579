@@ -60,8 +60,11 @@ def tfidf(docs):
         tfidf_data.append(tfidf_value_of_terms_in_doc)
     return tfidf_data
 
+def dot(a, b):
+    return a.multiply(b).sum()
+
 def norm(matrix):
-    return math.sqrt(matrix.multiply(matrix).sum())
+    return math.sqrt(dot(matrix, matrix))
 
 def create_csr_matrix(tfidf_value_per_doc, vocab):
     col = []
@@ -179,7 +182,7 @@ def cosine_sim(a, b):
     cosine_similarity = 0.0
     if a == None or b == None:
         return cosine_similarity
-    num = a.multiply(b)
+    num = dot(a, b)
     deno = norm(a) * norm(b)
     return num / deno
 
@@ -205,9 +208,6 @@ def make_predictions(movies, ratings_train, ratings_test):
     Returns:
       A numpy array containing one predicted rating for each element of ratings_test.
     """
-    ###TODO
-    pass
-
 
 def mean_absolute_error(predictions, ratings_test):
     """DONE.
