@@ -76,7 +76,7 @@ def create_csr_matrix(tfidf_value_per_doc, vocab):
         data.append(tfidf_value_of_term[1])
         row.append(row_no)
         col.append(vocab[tfidf_value_of_term[0]])
-    X = csr_matrix((data, (row, col)), shape=(1, len(vocab)),dtype=int)
+    X = csr_matrix((data, (row, col)), shape=(1, len(vocab)),dtype=float)
     return X
 
 def download_data():
@@ -208,6 +208,26 @@ def make_predictions(movies, ratings_train, ratings_test):
     Returns:
       A numpy array containing one predicted rating for each element of ratings_test.
     """
+    predictions = []
+    for test in ratings_test.iterrows():
+        prediction = 0.0
+        wts = []
+        ratings_of_user = []
+        test_movie_feature = movies[movies.movieId == test[1].movieId].iloc[0].features
+        for train in ratings_train[ratings_train.userId == test[1].userId].iterrows():
+            if test[1].movieId == train[1].movieId:
+                continue
+            train_movie_feature = movies[movies.movieId == train[1].movieId].iloc[0].features
+            sim = cosine_sim(train_movie_feature, test_movie_feature)
+            ratings_of_user.append(train[1].rating)
+            if sim >= 0:
+                wts.append(sim)
+        if len(wts) == 0 or sum(wts) == 0:
+            prediction = np.average(ratings_of_user)
+        else:
+            prediction = np.average(ratings_of_user, weights=wts)
+        predictions.append(prediction)
+    return np.array(predictions)
 
 def mean_absolute_error(predictions, ratings_test):
     """DONE.
