@@ -49,13 +49,13 @@ def tfidf(docs):
         k = term_freqs.most_common(1)
         tfidf_value_of_terms_in_doc = []
         for term, freq in term_freqs.items():
+            tfidf_value = 0
             if len(k) == 0 or len(k[0]) != 2:
                 break
-            if df[term] == 0:
-                df[term] = 1
-            tf = freq / k[0][1]
-            idf = math.log10(N / df[term])
-            tfidf_value = tf * idf
+            if k[0][1] != 0 and df[term] != 0:
+                tf = freq / k[0][1]
+                idf = math.log10(N / df[term])
+                tfidf_value = tf * idf
             tfidf_value_of_terms_in_doc.append((term, tfidf_value))
         tfidf_data.append(tfidf_value_of_terms_in_doc)
     return tfidf_data
@@ -184,7 +184,9 @@ def cosine_sim(a, b):
         return cosine_similarity
     num = dot(a, b)
     deno = norm(a) * norm(b)
-    return num / deno
+    if deno != 0:
+        cosine_similarity = num / deno
+    return cosine_similarity
 
 def make_predictions(movies, ratings_train, ratings_test):
     """
@@ -224,7 +226,7 @@ def make_predictions(movies, ratings_train, ratings_test):
             if sim > 0:
                 num.append(sim * train[1].rating)
                 wts.append(sim)
-        if len(wts) == 0:
+        if len(wts) == 0 or sum(wts) == 0:
             prediction = np.average(ratings_of_user)
         else:
             prediction = sum(num)/sum(wts)
