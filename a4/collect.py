@@ -7,12 +7,14 @@ from TwitterAPI import TwitterAPI
 import time
 import pickle
 import signal
-from threading import Thread
+from threading import Thread, Condition
 from multiprocessing import Queue
 import sys
+import threading
 
-queueSize = 100
+queueSize = 5000
 queue = Queue(queueSize)
+twitter_rate_limit = Condition()
 
 #Filename
 comments_data = "comments"
@@ -26,7 +28,8 @@ access_token_secret = 'tlS3LpIG0L1JbcWVyXfSD3HB6FpWl2EOyvSL7etfCWOPL'
 
 
 class ProducerThread(Thread):
-    def __init__(self, service, keywords, store_comment_fnc, comments_file):
+    def __init__(self, run_event, service, keywords, store_comment_fnc, comments_file):
+        self.run_event = run_event
         self.service = service
         self.comments = service.request('statuses/filter', {'language': 'en', 'track': keywords})
         self.store_comment_fnc = store_comment_fnc
@@ -35,18 +38,20 @@ class ProducerThread(Thread):
 
     def run(self):
         global queue
-        while True:
-            for comment in self.comments:
-                try:
-                    print(comment['text'])
-                    self.store_comment_fnc(comment, self.comments_file)
-                except:
+        for comment in self.comments:
+            if not self.run_event.is_set():
+                break
+            try:
+                print(comment['text'])
+                self.store_comment_fnc(comment, self.comments_file)
+            except:
                     continue
-                queue.put(comment)
+            queue.put(comment)
 
 class ConsumerThread(Thread):
 
-    def __init__(self, service, store_fnc, users_file):
+    def __init__(self, run_event, service, store_fnc, users_file):
+        self.run_event = run_event
         self.service = service
         self.store_fnc = store_fnc
         self.users_file = users_file
@@ -55,14 +60,17 @@ class ConsumerThread(Thread):
     def run(self):
         cache = defaultdict(bool)
         global queue
-        while True:
+        while self.run_event.is_set():
             comment = queue.get()
             user_id = comment['user']['id']
             if cache[user_id]:
                 continue
             resource = "friends/ids"
             params = {'user_id': user_id}
-            friends = list(self.robust_request(self.service, resource, params))
+            request = self.robust_request(self.service, resource, params)
+            if request is None:
+                continue
+            friends = list(request)
             self.store_fnc((comment['user']['id'],friends), self.users_file)
 
     def robust_request(self, twitter, resource, params, max_tries=5):
@@ -73,8 +81,11 @@ class ConsumerThread(Thread):
             else:
                 print('Got error %s \nsleeping for 15 minutes.' % request.text)
                 sys.stderr.flush()
-                time.sleep(61 * 15)
-
+                twitter_rate_limit.acquire()
+                twitter_rate_limit.wait(61 * 15)
+                twitter_rate_limit.release()
+                if not self.run_event.is_set():
+                    break
 
 
 def authenticate():
@@ -95,18 +106,33 @@ def get_comments(service, keywords, store_comment_fnc, comments_file):
 
 
 def main():
+    run_event = threading.Event()
+    run_event.set()
     service = authenticate()
     comments_file = open(comments_data, "wb")
     users_file = open(user_data, "wb")
     keywords = ['thanksgiving']
+    collect_comments = ProducerThread(run_event, service, keywords, store_comment, comments_file)
+    collect_friends =  ConsumerThread(run_event, service, store_comment, users_file)
     try:
-        ProducerThread(service, keywords, store_comment, comments_file).start()
-        ConsumerThread(service, store_comment, users_file).start()
+        collect_comments.start()
+        collect_friends.start()
+    except:
+        exit()
+
+    try:
+        while True:
+            time.sleep(.1)
     except KeyboardInterrupt:
-        print("Keyboard Interrupt")
+        print("Graceful Exit")
+        run_event.clear()
+        twitter_rate_limit.acquire()
+        twitter_rate_limit.notify()
+        twitter_rate_limit.release()
+        collect_comments.join()
+        collect_friends.join()
         comments_file.close()
         users_file.close()
-
 
 if __name__ == '__main__':
         main()
