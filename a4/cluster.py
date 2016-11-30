@@ -11,12 +11,13 @@ import os
 import re
 from scipy.sparse import csr_matrix
 from sklearn.cross_validation import KFold
-from sklearn.linear_model import LogisticRegression
+#from sklearn.linear_model import LogisticRegression
+from sklearn import svm
 import string
 import tarfile
 import urllib.request
-import string
-
+import pickle
+from nltk.corpus import sentiwordnet as swn
 
 
 def download_data():
@@ -180,6 +181,24 @@ def lexicon_features(tokens, feats):
         elif token in neg_words:
             feats[neg_words_key] += 1
 
+
+def token_lexicon_features(tokens, feats):
+    cache = defaultdict(list)
+    if feats is None:
+        return
+    for token in tokens:
+        polarity = []
+        token = token.lower()
+        if len(cache[token]) == 0:
+            polarity = list(swn.senti_synsets(token))
+            if len(polarity) != 0:
+                cache[token] = [polarity[0].pos_score(), polarity[0].neg_score()]
+            else:
+                cache[token] = [0, 0]
+        if (cache[token][0] > cache[token][1]) or (token in pos_words):
+            feats[token] += (cache[token][0] * 100)
+        elif (cache[token][0] < cache[token][1]) or (token in neg_words):
+            feats[token] += (cache[token][1] * 100)
 
 def featurize(tokens, feature_fns):
     """
@@ -362,7 +381,7 @@ def eval_all_combinations(docs, labels, punct_vals,
         tokens_list = [tokenize(d, punct_val) for d in docs]
         for min_freq in min_freqs:
             for feature_fn in all_feature_fns:
-                clf = LogisticRegression()
+                clf = svm.LinearSVC()
                 X,vocab = vectorize(tokens_list, feature_fn, min_freq)
                 accuracy = cross_validation_accuracy(clf, X, labels, 5)
                 result = {}
@@ -443,7 +462,7 @@ def fit_best_classifier(docs, labels, best_result):
       vocab...The dict from feature name to column index.
     """
     vocab = {}
-    clf = LogisticRegression()
+    clf = svm.LinearSVC()
     if best_result is None or docs is None or labels is None:
         return clf, vocab
     tokens_list = [tokenize(d, best_result["punct"]) for d in docs]
@@ -547,6 +566,32 @@ def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
         print("truth=%d predicted=%d proba=%f" % ((1 - misclassified_doc[2]), misclassified_doc[2], misclassified_doc[1]))
         print(misclassified_doc[0])
 
+def read_real_data(filename, db, best_result, vocab):
+    data = load_pickle_file(filename)
+    docs = get_docs_from_data(data)
+    preprocessed_docs = preprocess_comments(docs, db)
+    tokens_list = [tokenize(d, best_result["punct"]) for d in preprocessed_docs]
+    X,vocab = vectorize(tokens_list, best_result["features"], best_result["min_freq"], vocab)
+    return preprocessed_docs, X
+
+def predict_real_data(docs, X, clf):
+    results = []
+    predictions = clf.predict(X)
+    for index_of_doc in range(0,len(docs)):
+        label = predictions[index_of_doc]
+        results.append((docs[index_of_doc], label))
+    return results
+
+def get_docs_from_data(data):
+    return [comments['text'] for comments in data]
+
+def load_pickle_file(filename):
+    with open(filename, "rb") as handle:
+         while True:
+            try:
+                 yield pickle.load(handle)
+            except EOFError:
+                break
 
 def build_slang_dict(filename):
     slang = {}
@@ -599,9 +644,13 @@ def strip_punctuation(tweet):
     tweet = "".join(c for c in tweet if c not in string.punctuation)
     return tweet
 
+def remove_url(text):
+    return re.sub(r'^https?:\/\/.*[\r\n]*', '', text, flags=re.MULTILINE)
 
 def preprocess_comment(comment, db):
     #comment = comment.encode('ascii', 'ignore')
+    comment = comment.lower()
+    comment = remove_url(comment)
     comment = replace_hashtag_word(comment)
     comment = remove_usernames(comment)
     comment = strip_punctuation(comment)
@@ -612,22 +661,82 @@ def preprocess_comment(comment, db):
 
 
 def preprocess_comments(comments, db):
-    result = None
+    results = []
     for comment in comments:
-        comment = preprocess_comment(comment, db)
-    return comment
+        results.append(preprocess_comment(comment, db))
+    return results
+
+
+def train():
+    feature_fns = [token_features, token_pair_features, lexicon_features]
+    # Download and read data.
+    download_data()
+    docs, labels = read_data(os.path.join('data', 'train'))
+    # Evaluate accuracy of many combinations
+    # of tokenization/featurization.
+    results = eval_all_combinations(docs, labels,
+                                    [True, False],
+                                    feature_fns,
+                                    [2,5,10])
+    # Print information about these results.
+    best_result = results[0]
+    worst_result = results[-1]
+    print('best cross-validation result:\n%s' % str(best_result))
+    print('worst cross-validation result:\n%s' % str(worst_result))
+    plot_sorted_accuracies(results)
+    print('\nMean Accuracies per Setting:')
+    print('\n'.join(['%s: %.5f' % (s,v) for v,s in mean_accuracy_per_setting(results)]))
+
+    # Fit best classifier.
+    clf, vocab = fit_best_classifier(docs, labels, results[0])
+
+    # Print top coefficients per class.
+    print('\nTOP COEFFICIENTS PER CLASS:')
+    print('negative words:')
+    print('\n'.join(['%s: %.5f' % (t,v) for t,v in top_coefs(clf, 0, 5, vocab)]))
+    print('\npositive words:')
+    print('\n'.join(['%s: %.5f' % (t,v) for t,v in top_coefs(clf, 1, 5, vocab)]))
+
+    # Parse test data
+    test_docs, test_labels, X_test = parse_test_data(best_result, vocab)
+
+    # Evaluate on test set.
+    predictions = clf.predict(X_test)
+    print('testing accuracy=%f' %
+          accuracy_score(test_labels, predictions))
+
+    #print('\nTOP MISCLASSIFIED TEST DOCUMENTS:')
+    #print_top_misclassified(test_docs, test_labels, X_test, clf, 5)
+    return best_result, vocab, clf
+
+
+def get_summary(results):
+    number_of_instances_per_class_found = defaultdict(int)
+    class_examples = {}
+    for result in results:
+        number_of_instances_per_class_found[result[1]] += 1
+        class_examples[result[1]] = result[0]
+    return number_of_instances_per_class_found, class_examples
+
+
+def write_summary(filename, results):
+    number_of_instances_per_class_found, class_examples = get_summary(results)
+    with open(filename, "w") as handle:
+        handle.write("Number of instances per class found: ")
+        for label, instances in number_of_instances_per_class_found.items():
+            handle.write(str(instances) + " ")
+        handle.write("\nOne example from each class: \n")
+        for label, examples in class_examples.items():
+            handle.write("Class %s:- %s\n" % (label, examples))
 
 
 def main():
     filename = "comments"
-    comments = ["This is lol"]
     slang_dict = build_slang_dict("slang.txt")
-    #comments = get_comments_from_file()
-    preprocessed_comments = preprocess_comments(comments, slang_dict)
-    print(preprocessed_comments)
-    #classified_comments = classify_comments(preprocessed_comments)
-    #store_results(classified_comments)
-
+    best_result, vocab, clf = train()
+    docs, X = read_real_data(filename, slang_dict, best_result, vocab)
+    results = predict_real_data(docs, X, clf)
+    write_summary("classify_summary", results)
 
 if __name__ == '__main__':
     main()
