@@ -408,10 +408,10 @@ def write_summary(filename, user_friends, communities):
     average_number_of_users_per_community = 0
     if number_of_communities_discovered != 0:
         average_number_of_users_per_community = number_of_users_collected / number_of_communities_discovered
-    with open(filename, "wb"):
-        pickle.dump(number_of_users_collected)
-        pickle.dump(number_of_communities_discovered)
-        pickle.dump(average_number_of_users_per_community)
+    with open(filename, "wb") as handle:
+        pickle.dump(number_of_users_collected, handle)
+        pickle.dump(number_of_communities_discovered, handle)
+        pickle.dump(average_number_of_users_per_community, handle)
 
 
 def main():
