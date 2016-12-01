@@ -109,9 +109,9 @@ def main():
     run_event = threading.Event()
     run_event.set()
     service = authenticate()
-    comments_file = open(comments_data, "wb")
-    users_file = open(user_data, "wb")
-    keywords = ['thanksgiving']
+    comments_file = open(comments_data, "ab")
+    users_file = open(user_data, "ab")
+    keywords = ["news"]
     collect_comments = ProducerThread(run_event, service, keywords, store_comment, comments_file)
     collect_friends =  ConsumerThread(run_event, service, store_comment, users_file)
     try:

@@ -351,15 +351,29 @@ def load_pickle_file(filename):
 def read_user_data(filename):
     return load_pickle_file(filename)
 
-def create_graph(user_friends, num_users):
+def jaccard_similarity(user1, user2):
+    if len(user1)==0 and len(user2)==0:
+        return 0
+    user1 = set(user1)
+    user2 = set(user2)
+    num = len(user1.intersection(user2))
+    deno = len(user1.union(user2))
+    return num / deno
+
+
+def create_graph(user_friends, num_users=100, jaccard_threshold=0.0001):
     graph = nx.Graph()
-    for index, user_friend in enumerate(user_friends):
+    for index, user1 in enumerate(user_friends):
         if index > num_users:
             break
-        user = user_friend[0]
-        graph.add_node(user)
-        for friend in user_friend[1]:
-            graph.add_edge(user, friend)
+        user_iter = 0
+        graph.add_node(user1[0])
+        while user_iter < len(user_friends):
+            user2 = user_friends[user_iter]
+            graph.add_node(user2[0])
+            if jaccard_similarity(user1[1], user2[1]) >= jaccard_threshold:
+                graph.add_edge(user1[0], user2[0])
+            user_iter += 1
     return graph
 
 
@@ -388,16 +402,29 @@ def draw_network(graph, filename):
     plt.axis('off')
     plt.savefig(filename)
 
+def write_summary(filename, user_friends, communities):
+    number_of_users_collected = len(user_friends)
+    number_of_communities_discovered = len(communities)
+    average_number_of_users_per_community = 0
+    if number_of_communities_discovered != 0:
+        average_number_of_users_per_community = number_of_users_collected / number_of_communities_discovered
+    with open(filename, "wb"):
+        pickle.dump(number_of_users_collected)
+        pickle.dump(number_of_communities_discovered)
+        pickle.dump(average_number_of_users_per_community)
+
+
 def main():
-    user_friends = read_user_data("users_friends")
-    graph = create_graph(user_friends, 10)
-    subgraph = create_subgraph(graph, 100)
-    draw_network(subgraph, "network.png")
-    communities = get_communities(subgraph)
-    #print(communities)
+    user_friends = list(read_user_data("users_friends"))
+    graph = create_graph(user_friends, len(user_friends))
+    #subgraph = create_subgraph(graph, 100)
+    draw_network(graph, "network.png")
+    communities = get_communities(graph)
+    print(communities)
     for index, community in enumerate(communities):
         print(community.order())
-        #draw_network(community, "community%d.png" % index)
+        draw_network(community, "community%d.png" % index)
+    write_summary("cluster_summary", user_friends, communities)
 
 if __name__ == '__main__':
     main()
