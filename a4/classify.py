@@ -721,14 +721,10 @@ def get_summary(results):
 
 def write_summary(filename, results):
     number_of_instances_per_class_found, class_examples = get_summary(results)
-    with open(filename, "w") as handle:
-        handle.write("Number of instances per class found: ")
-        for label, instances in number_of_instances_per_class_found.items():
-            handle.write(str(instances) + " ")
-        handle.write("\nOne example from each class: \n")
-        for label, examples in class_examples.items():
-            handle.write("Class %s:- %s\n" % (label, examples))
-
+    with open(filename, "wb") as handle:
+        pickle.dump(sum(number_of_instances_per_class_found.values()) ,handle)
+        pickle.dump(number_of_instances_per_class_found ,handle)
+        pickle.dump(class_examples ,handle)
 
 def main():
     filename = "comments"
