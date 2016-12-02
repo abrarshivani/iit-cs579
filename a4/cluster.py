@@ -304,7 +304,7 @@ def check_nodes_exist_in_graph(graph, nodes):
     return len(set(graph.nodes()).intersection(nodes)) == len(nodes)
 
 
-def girvan_newman(G, depth=0):
+def girvan_newman(G, depth=0, min_range=2, max_range=40):
     """ Recursive implementation of the girvan_newman algorithm.
     See http://www-rohan.sdsu.edu/~gawron/python_for_ss/course_core/book_draft/Social_Networks/Networkx.html
 
@@ -315,7 +315,7 @@ def girvan_newman(G, depth=0):
     A list of all discovered communities,
     a list of lists of nodes. """
 
-    if G.order() == 1:
+    if G.order() > min_range and G.order() < max_range:
         return [G.nodes()]
 
     def find_best_edge(G0):
@@ -326,15 +326,15 @@ def girvan_newman(G, depth=0):
 
     # Each component is a separate community. We cluster each of these.
     components = [c for c in nx.connected_component_subgraphs(G)]
-    indent = '   ' * depth  # for printing
+    #indent = '   ' * depth  # for printing
     while len(components) == 1:
         edge_to_remove = find_best_edge(G)
-        print(indent + 'removing ' + str(edge_to_remove))
+        #print(indent + 'removing ' + str(edge_to_remove))
         G.remove_edge(*edge_to_remove)
         components = [c for c in nx.connected_component_subgraphs(G)]
 
     result = [c.nodes() for c in components]
-    print(indent + 'components=' + str(result))
+    #print(indent + 'components=' + str(result))
     for c in components:
         result.extend(girvan_newman(c, depth + 1))
 
@@ -361,7 +361,7 @@ def jaccard_similarity(user1, user2):
     return num / deno
 
 
-def create_graph(user_friends, num_users=100, jaccard_threshold=0.0001):
+def create_graph(user_friends, num_users=100, jaccard_threshold=0.00001):
     graph = nx.Graph()
     for index, user1 in enumerate(user_friends):
         if index > num_users:
@@ -375,16 +375,6 @@ def create_graph(user_friends, num_users=100, jaccard_threshold=0.0001):
                 graph.add_edge(user1[0], user2[0])
             user_iter += 1
     return graph
-
-
-def create_subgraph(graph, num_nodes):
-    if len(graph.nodes()) <= num_nodes:
-        return graph
-    return graph.subgraph(graph.nodes()[:num_nodes])
-
-
-def get_communities(graph):
-    return partition_girvan_newman(graph, max_depth=50)
 
 
 def draw_network(graph, filename):
@@ -417,13 +407,10 @@ def write_summary(filename, user_friends, communities):
 def main():
     user_friends = list(read_user_data("users_friends"))
     graph = create_graph(user_friends, len(user_friends))
-    #subgraph = create_subgraph(graph, 100)
-    draw_network(graph, "network.png")
-    communities = get_communities(graph)
+    subgraph = get_subgraph(graph, min_degree=2)
+    draw_network(subgraph, "network.png")
+    communities = girvan_newman(subgraph, 0, 1, int(math.ceil(.80 * len(user_friends))))
     print(communities)
-    for index, community in enumerate(communities):
-        print(community.order())
-        draw_network(community, "community%d.png" % index)
     write_summary("cluster_summary", user_friends, communities)
 
 if __name__ == '__main__':
