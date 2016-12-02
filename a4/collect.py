@@ -111,7 +111,24 @@ def main():
     service = authenticate()
     comments_file = open(comments_data, "ab")
     users_file = open(user_data, "ab")
-    keywords = ["news"]
+    keywords = ["fantastic beasts and where to find them",
+                "Incarnate", "The Comedian",
+                "Office Christmas Party",
+                "Why Him?",
+                "A Monster Calls",
+                "20th Century Women",
+                "Hidden Figures",
+                "Live by Night",
+                "Man Down",
+                "La La Land",
+                "Rogue One",
+                "Live by Night",
+                "Sky on fire",
+                "The Founder",
+                "Collateral Beauty",
+                "Hollywood movie",
+                "Bollywood movie",
+                ]
     collect_comments = ProducerThread(run_event, service, keywords, store_comment, comments_file)
     collect_friends =  ConsumerThread(run_event, service, store_comment, users_file)
     try:
