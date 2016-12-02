@@ -9,8 +9,8 @@ is consumer. That is, once tweet is received from Twitter it is enqueued in queu
 which fetches friends ids from Twitter and stored in a file.
 
 cluster.py
-User's friends stored in a file by collect.py are read by cluster.py. These data is used in cluster.py to detect communities in the users who posted
-these tweets. Graph is created in cluster.py where nodes are user_ids and edges are drawn based on jaccard similarity. Friends of
+User's friends stored in a file by collect.py are read by cluster.py. These data is used in cluster.py to detect communities in the users
+who posted these tweets. Graph is created in cluster.py where nodes are user_ids and edges are drawn based on jaccard similarity. Friends of
 one user is matched with all other users to calculate jaccard similarity and if one similarity is greater than some threshold then
 edge is added. Once the graph is drawn, the communities are detected using girwan_newman algorithm and results are summarized into a file.
 
@@ -28,4 +28,8 @@ summarize.py collect summary written for communities detection and sentiments an
 
 
 Analysis
-
+In collect.py, I get tweets for multiple movies. These movies are of different genres. Hence, in cluster.py we get
+communities of users who like different genres of movie. Similarly, we get sentiments of tweet for different movies.
+I observed that we need to implement more context based processing for tweets since we need to know if the tweet is
+about movie or some other object i.e we need to differentiate with 'Anconda' as movie or snake or python package.
+Also, we need to analyze the sentiment properly for sarcasm.
