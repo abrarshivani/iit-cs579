@@ -415,7 +415,7 @@ def main():
     subgraph = get_subgraph(graph, min_degree=2)
     draw_network(subgraph, "network.png")
     communities = girvan_newman(subgraph, 0, int(math.ceil(.10 * len(user_friends))), int(math.ceil(.90 * len(user_friends))))
-    print(communities)
+    #print(communities)
     write_summary("cluster_summary", user_friends, communities)
 
 if __name__ == '__main__':
