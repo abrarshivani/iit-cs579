@@ -315,8 +315,11 @@ def girvan_newman(G, depth=0, min_range=2, max_range=40):
     A list of all discovered communities,
     a list of lists of nodes. """
 
-    if G.order() > min_range and G.order() < max_range:
+    if G.order() in range(min_range, max_range):
         return [G.nodes()]
+
+    if G.order() < min_range:
+        return None
 
     def find_best_edge(G0):
         eb = nx.edge_betweenness_centrality(G0)
@@ -336,7 +339,9 @@ def girvan_newman(G, depth=0, min_range=2, max_range=40):
     result = [c.nodes() for c in components]
     #print(indent + 'components=' + str(result))
     for c in components:
-        result.extend(girvan_newman(c, depth + 1))
+        gn = girvan_newman(c, depth + 1, min_range, max_range)
+        if gn is not None:
+            result.extend(gn)
 
     return result
 
@@ -409,7 +414,7 @@ def main():
     graph = create_graph(user_friends, len(user_friends))
     subgraph = get_subgraph(graph, min_degree=2)
     draw_network(subgraph, "network.png")
-    communities = girvan_newman(subgraph, 0, 1, int(math.ceil(.80 * len(user_friends))))
+    communities = girvan_newman(subgraph, 0, int(math.ceil(.10 * len(user_friends))), int(math.ceil(.90 * len(user_friends))))
     print(communities)
     write_summary("cluster_summary", user_friends, communities)
 
